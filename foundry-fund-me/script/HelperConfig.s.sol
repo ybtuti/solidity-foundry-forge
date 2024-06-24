@@ -5,21 +5,18 @@ pragma solidity ^0.8.18;
 import {Script} from "forge-std/Script.sol";
 
 contract HelperConfig {
-
     NetworkConfig public activeNetworkConfig;
 
-    consructor() {
+    struct NetworkConfig {
+        address priceFeed;
+    }
+
+    constructor() {
         if (block.chainid == 11155111) {
             activeNetworkConfig = getSepoliaEthConfig();
         } else {
             activeNetworkConfig = getAnvilEthConfig();
         }
-        
-    }
-
-
-    struct NetworkConfig {
-        address priceFeed;
     }
 
     function getSepoliaEthConfig() public pure returns (NetworkConfig memory) {
