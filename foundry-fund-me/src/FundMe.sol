@@ -100,4 +100,6 @@ contract FundMe {
     function getOwner() external view returns (address) {
         return i_owner;
     }
+
+    function 
 }

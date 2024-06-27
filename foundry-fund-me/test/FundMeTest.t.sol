@@ -88,4 +88,12 @@ contract FundMeTest is Test {
             endingOwnerBalance
         );
     }
+
+    function testWithdrawFromMultipleFunders() public funded {
+        uint160 numberOfFunders = 10;
+        uint160 startingFunderIndex = 1;
+        for (uint256 i = startingFunderIndex; i < numberOfFunders; i++) {
+            hoax(address(i), SEND_VALUE);
+        }
+    }
 }
