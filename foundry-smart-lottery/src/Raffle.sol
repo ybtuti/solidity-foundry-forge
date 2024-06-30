@@ -34,20 +34,40 @@ contract Raffle {
     error Raffle__SendMoreToEnterRaffle();
 
     uint256 private immutable i_entranceFee;
+    //@ybtuti: The duration of lottery in seconds
+    uint256 private immutable i_interval;
+    address payable[] private s_players;
+    uint256 private s_lastTimeStamp;
 
-    constructor(uint256 entranceFee) {
+    /* Events */
+    event raffleEntered(address indexed player);
+
+    /* Constructor*/
+    constructor(uint256 entranceFee, uint256 interval) {
         i_entranceFee = entranceFee;
+        i_interval = interval;
+        s_lastTimeStamp = block.timestamp;
     }
 
-    function enterRaffle() public payable {
+    function enterRaffle() external payable {
         //require(msg.value >= i_entranceFee, "Not Enough entrance fee");
         if (msg.value < i_entranceFee) {
             revert Raffle__SendMoreToEnterRaffle();
         }
         //require(msg.value >= i_entranceFee, SendMoreToEnterRaffle());
+        s_players.push(payable(msg.sender));
+        emit raffleEntered(msg.sender);
     }
 
-    function pickWinner() public {}
+    //1. Get Random No
+    //2. Use Random No to pick winner
+    //3.Be called automatically
+    function pickWinner() external {
+        //check whether enough time has passed
+        if ((block.timestamp - s_lastTimeStamp) < i_interval) {
+            revert();
+        }
+    }
 
     /** Getter functions */
     function getEntranceFee() public view returns (uint256) {
