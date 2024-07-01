@@ -37,6 +37,11 @@ contract Raffle is VRFConsumerBaseV2Plus {
     error Raffle__SendMoreToEnterRaffle();
     error Raffle__TransferFailed();
     error Raffle__RaffleNotOpen();
+    error Raffle__UpkeepNotNeeded(
+        uint256 balance,
+        uint256 playersLength,
+        uint256 raffleState
+    );
 
     /* Type declarations */
     enum RaffleState {
@@ -97,19 +102,32 @@ contract Raffle is VRFConsumerBaseV2Plus {
     //2. Use Random No to pick winner
     //3.Be called automatically
     /**
-     * @ybtuti This is the function that the Chainlink nodes will call to see if the lottery is ready to have a winner picked.
-     * @param null
+     * @dev This is the function that the Chainlink nodes will call to see if the lottery is ready to have a winner picked.
+     * @param -ignored
      * @return upKeepNeeded -true if its time to restart the lottery
-     * @return
+     * @return - ignored
      */
     function checkUpkeep(
-        bytes calldata /*checkData*/
-    ) public view returns (bool upKeepNeeded, bytes memory /*performData*/) {}
+        bytes memory /*checkData*/
+    ) public view returns (bool upKeepNeeded, bytes memory /*performData*/) {
+        bool timeHasPassed = ((block.timestamp - s_lastTimeStamp) >=
+            i_interval);
+        bool isOpen = s_raffleState == RaffleState.OPEN;
+        bool hasBalance = address(this).balance > 0;
+        bool hasPlayers = s_players.length > 0;
+        upKeepNeeded = timeHasPassed && isOpen && hasBalance && hasPlayers;
+        return (upKeepNeeded, "");
+    }
 
-    function pickWinner() external {
+    function performUpkeep(bytes calldata /* perform Data*/) external {
         //check whether enough time has passed
-        if ((block.timestamp - s_lastTimeStamp) < i_interval) {
-            revert();
+        (bool upkeepNeeded, ) = checkUpkeep("");
+        if (!upkeepNeeded) {
+            revert Raffle__UpkeepNotNeeded(
+                address(this).balance,
+                s_players.length,
+                uint256(s_raffleState)
+            );
         }
         s_raffleState = RaffleState.CALCULATING;
         //Get Random Number
@@ -125,12 +143,12 @@ contract Raffle is VRFConsumerBaseV2Plus {
                     VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
                 )
             });
-        uint256 requestId = s_vrfCoordinator.requestRandomWords(request);
+        s_vrfCoordinator.requestRandomWords(request);
     }
 
     // CEI: Checks, Effects, Interactions
     function fulfillRandomWords(
-        uint256 requestId,
+        uint256 /*requestId*/,
         uint256[] calldata randomWords
     ) internal override {
         uint256 indexOfWinner = randomWords[0] % s_players.length;
