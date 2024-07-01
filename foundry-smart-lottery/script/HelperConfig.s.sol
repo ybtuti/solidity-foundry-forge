@@ -27,7 +27,7 @@ contract HelperConfig is CodeConstants, Script {
         address vrfCoordinator;
         bytes32 gasLane;
         uint32 callbackGasLimit;
-        uint256 subscriptionID;
+        uint256 subscriptionId;
     }
 
     NetworkConfig public localNetworkConfig;
@@ -49,6 +49,10 @@ contract HelperConfig is CodeConstants, Script {
         }
     }
 
+    function getConfig() public returns (NetworkConfig memory) {
+        return getConfigByChainId(block.chainid);
+    }
+
     function getSepoliaEthConfig() public pure returns (NetworkConfig memory) {
         return
             NetworkConfig({
@@ -57,7 +61,7 @@ contract HelperConfig is CodeConstants, Script {
                 vrfCoordinator: 0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B,
                 gasLane: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
                 callbackGasLimit: 500000,
-                subscriptionID: 0
+                subscriptionId: 0
             });
     }
 
@@ -81,7 +85,7 @@ contract HelperConfig is CodeConstants, Script {
             vrfCoordinator: address(vrfCoordinatorMock),
             gasLane: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
             callbackGasLimit: 500000,
-            subscriptionID: 0
+            subscriptionId: 0
         });
         return localNetworkConfig;
     }
